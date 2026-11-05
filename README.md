@@ -244,3 +244,4 @@ az group delete --name <RESOURCE_GROUP> --yes --no-wait
 ## Autor
 
 Edmilson Batista da Silva Filho - DevOps Engineer
+
