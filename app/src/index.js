@@ -1,10 +1,12 @@
 const express = require('express');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware para parsing de JSON
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -15,8 +17,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
+// Application metadata API
+app.get('/api', (req, res) => {
   res.json({
     message: 'DevOps AKS Demo Application',
     version: '1.0.0',
