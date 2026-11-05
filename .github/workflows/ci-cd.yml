@@ -45,6 +45,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
       
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -93,6 +94,7 @@ jobs:
           # Substituir variáveis nos manifests
           export ACR_LOGIN_SERVER="${{ secrets.ACR_LOGIN_SERVER }}"
           export IMAGE_TAG="${{ steps.vars.outputs.short_sha }}"
+          export GIT_SHA="${{ github.sha }}"
           
           # Aplicar manifests com substituição de variáveis
           envsubst < k8s/deployment.yaml | kubectl apply -f -

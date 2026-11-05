@@ -21,7 +21,9 @@ app.get('/health', (req, res) => {
 app.get('/api', (req, res) => {
   res.json({
     message: 'DevOps AKS Demo Application',
-    version: '1.0.0',
+    version: require('../package.json').version,
+    commit: process.env.GIT_SHA || null,
+    imageTag: process.env.IMAGE_TAG || 'local',
     environment: process.env.NODE_ENV || 'development',
     description: 'CI/CD Pipeline com GitHub Actions + ACR + AKS'
   });

@@ -26,6 +26,19 @@ Developer → VS Code → GitHub → GitHub Actions → ACR → AKS
 4. **Push to Registry**: Imagem enviada para Azure Container Registry
 5. **CD**: Deploy automático para Azure Kubernetes Service
 
+## Página da demonstração
+
+Ao acessar a aplicação pela raiz (`/`), você verá um painel responsivo com o fluxo de entrega e o estado atual da aplicação. O painel consulta os endpoints de diagnóstico e atualiza as informações a cada 30 segundos.
+
+| Endereço | Conteúdo |
+| --- | --- |
+| `/` | Painel visual da demonstração |
+| `/health` | Saúde e tempo de atividade da aplicação |
+| `/info` | Hostname, plataforma e versão do Node.js |
+| `/api` | Versão, commit, tag da imagem e ambiente |
+
+Em um deploy feito pelo GitHub Actions, o painel mostra os primeiros sete caracteres do commit e a tag da imagem publicada. Em execução local, esses campos indicam `Build local`.
+
 ## Estrutura do Projeto
 
 ```
@@ -34,9 +47,10 @@ devops-aks-demo/
 │   └── ci-cd.yml           # Pipeline principal CI/CD
 ├── app/                     # Código da aplicação
 │   ├── src/
-│   │   └── index.js        # Aplicação Node.js
+│   │   ├── index.js        # Aplicação Node.js e endpoints
+│   │   └── public/
+│   │       └── index.html  # Painel visual da demonstração
 │   ├── package.json
-│   └── package-lock.json
 ├── k8s/                     # Kubernetes manifests
 │   ├── deployment.yaml
 │   └── service.yaml

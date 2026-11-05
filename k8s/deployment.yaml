@@ -33,6 +33,10 @@ spec:
           value: "production"
         - name: PORT
           value: "3000"
+        - name: GIT_SHA
+          value: "${GIT_SHA}"
+        - name: IMAGE_TAG
+          value: "${IMAGE_TAG}"
         resources:
           requests:
             cpu: 100m
