@@ -1,6 +1,14 @@
-# DevOps AKS Demo - CI/CD Pipeline
+# DevOps AKS Demo - CI/CD Pipeline 🚀
+
+[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=github-actions&logoColor=white)](https://github.com/features/actions)
+[![Azure](https://img.shields.io/badge/Cloud-Azure-0078D4?logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com/)
+[![Kubernetes](https://img.shields.io/badge/Orchestration-Kubernetes-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Node.js](https://img.shields.io/badge/Runtime-Node.js%2018-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 
 Projeto de demonstração de pipeline CI/CD completo usando GitHub Actions, Azure Container Registry e Azure Kubernetes Service.
+
+> **🎯 Objetivo:** Demonstrar implementação completa de DevOps moderno com deploy automático no Azure Kubernetes Service.
 
 ## Arquitetura
 
@@ -145,6 +153,7 @@ kubectl get service devops-aks-demo-service
 O pipeline GitHub Actions é acionado automaticamente em push para `main`:
 
 ### Stage 1: CI (Build & Push)
+
 - Checkout do código
 - Login no Azure Container Registry
 - Build da imagem Docker
@@ -152,6 +161,7 @@ O pipeline GitHub Actions é acionado automaticamente em push para `main`:
 - Push para ACR
 
 ### Stage 2: CD (Deploy)
+
 - Login no AKS
 - Update dos manifests K8s com nova imagem
 - Deploy no cluster AKS

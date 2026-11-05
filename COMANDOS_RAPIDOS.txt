@@ -1,0 +1,38 @@
+===========================================
+  COMANDOS RÁPIDOS - DEVOPS AKS DEMO
+===========================================
+
+1. ABRIR TERMINAL NO DIRETÓRIO:
+   cd c:\Users\edmil\Documents\cogna\repositorios\devops-aks-demo
+
+2. INICIALIZAR GIT E SUBIR PARA GITHUB:
+   
+   Opção A (Script automático):
+   init-github.bat
+   
+   Opção B (Comandos manuais):
+   git init
+   git add .
+   git commit -m "feat: initial commit - CI/CD pipeline"
+   git branch -M main
+   gh repo create devops-aks-demo --public --source=. --remote=origin --description "CI/CD Pipeline completo"
+   git push -u origin main
+
+3. ABRIR REPOSITÓRIO NO NAVEGADOR:
+   gh repo view --web
+
+4. TESTAR LOCALMENTE (Node.js):
+   cd app
+   npm install
+   npm start
+
+5. TESTAR LOCALMENTE (Docker):
+   docker build -t devops-aks-demo:local .
+   docker run -p 3000:3000 devops-aks-demo:local
+
+6. VER DOCUMENTAÇÃO:
+   QUICKSTART.md  - Início rápido (10 min)
+   SETUP.md       - Setup Azure completo
+   GITHUB_SETUP.md - Setup GitHub (este arquivo)
+
+===========================================
