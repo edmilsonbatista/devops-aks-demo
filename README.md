@@ -27,6 +27,7 @@ Abra `http://localhost:3000`. Para fazer o deploy na Azure, consulte os guias es
 - [Aplicação Node.js e painel](app/README.md)
 - [Infraestrutura Azure com Terraform](infra/terraform/README.md)
 - [Manifests Kubernetes](k8s/README.md)
+- [Estudo futuro: Argo CD e GitOps](argocd/README.md)
 - [Pipeline GitHub Actions](.github/workflows/README.md)
 
 ## Guias gerais
@@ -42,6 +43,7 @@ Abra `http://localhost:3000`. Para fazer o deploy na Azure, consulte os guias es
 .
 ├── .github/workflows/   # CI/CD da aplicação
 ├── app/                 # Aplicação e painel web
+├── argocd/              # Estudo de integração GitOps futura
 ├── infra/terraform/     # Infraestrutura Azure como código
 └── k8s/                 # Deployment e Service Kubernetes
 ```

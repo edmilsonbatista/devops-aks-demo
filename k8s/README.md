@@ -32,3 +32,7 @@ kubectl get service devops-aks-demo-service
 ```
 
 O endereço público é provisionado pelo Azure para o Service `LoadBalancer`. A infraestrutura do cluster e do registry será documentada em [`infra/terraform/README.md`](../infra/terraform/README.md).
+
+## Entrega futura com Argo CD
+
+O workflow atual aplica os manifests via GitHub Actions. A proposta futura é manter o build e o push da imagem no GitHub Actions e transferir a sincronização dos manifests para Argo CD. Consulte o [estudo de Argo CD e GitOps](../argocd/README.md); o Argo CD ainda não está instalado no cluster.
