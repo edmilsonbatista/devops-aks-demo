@@ -133,7 +133,7 @@
       </main>
 
       <footer class="footer-row">
-        <span>Demo de CI/CD · Azure + Kubernetes</span>
+        <span>© <span id="copyright-year"></span> Edmilson Batista da Silva Filho. Todos os direitos reservados.</span>
         <nav class="api-links" aria-label="Endpoints de diagnóstico"><a href="/health">Health check</a><a href="/info">Info da instância</a><a href="/api">API</a></nav>
       </footer>
     </div>
@@ -145,6 +145,7 @@
       const hostValue = document.getElementById('host-value');
       const runtimeDetail = document.getElementById('runtime-detail');
       const versionValue = document.getElementById('version-value');
+      document.getElementById('copyright-year').textContent = new Date().getFullYear();
 
       async function refreshStatus() {
         statusEl.dataset.state = 'loading';
