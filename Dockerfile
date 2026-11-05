@@ -8,8 +8,9 @@ WORKDIR /app
 # Copy package files
 COPY app/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install production dependencies. This project does not include a package-lock.json,
+# so use npm install instead of npm ci, which requires a lockfile.
+RUN npm install --omit=dev
 
 # Stage 2: Production
 FROM node:18-alpine
