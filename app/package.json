@@ -1,0 +1,29 @@
+{
+  "name": "devops-aks-demo",
+  "version": "1.0.0",
+  "description": "Demo application for CI/CD pipeline with GitHub Actions and AKS",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "kubernetes",
+    "aks",
+    "devops",
+    "cicd"
+  ],
+  "author": "Edmilson Batista da Silva Filho",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
