@@ -8,7 +8,7 @@ Projeto de demonstração de CI/CD com aplicação Node.js, GitHub Actions, Azur
 Desenvolvimento → GitHub → GitHub Actions → ACR → AKS → Aplicação
 ```
 
-O Terraform ficará responsável por provisionar a infraestrutura Azure. Os manifests em `k8s/` continuarão responsáveis por implantar a aplicação no cluster.
+O Terraform gerencia a infraestrutura Azure (incluindo a importação de recursos existentes). Os manifests em `k8s/` descrevem a aplicação implantada no cluster.
 
 ## Começar
 
@@ -16,7 +16,7 @@ Para executar apenas a aplicação localmente:
 
 ```bash
 cd app
-npm install
+npm ci
 npm start
 ```
 

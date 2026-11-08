@@ -32,13 +32,8 @@ app.get('/api', (req, res) => {
 // Info endpoint
 app.get('/info', (req, res) => {
   res.json({
-    hostname: require('os').hostname(),
     platform: process.platform,
-    nodeVersion: process.version,
-    memory: {
-      total: `${(require('os').totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
-      free: `${(require('os').freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`
-    }
+    nodeVersion: process.version
   });
 });
 
@@ -55,7 +50,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     error: 'Internal Server Error',
-    message: err.message
+    message: 'Unexpected error'
   });
 });
 

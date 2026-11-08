@@ -1,18 +1,18 @@
-# Confirme os valores reais do Azure antes de inicializar o Terraform.
-subscription_id          = ""
-resource_group_name      = "rg-devops-aks-demo"
-location                 = "eastus"
-acr_name                 = "acrdevopsdemo27844"
-acr_sku                  = "Basic"
-acr_admin_enabled        = true
-acr_pull_role_assignment_guid = "ca5ac01c-c922-4456-a016-80a8aa60e7fe"
-aks_name                 = "aksdevopsdemo"
-aks_dns_prefix           = "aksdevopsd-rg-devops-aks-de-a4091a"
-aks_kubernetes_version   = "1.36"
-aks_sku_tier             = "Free"
-aks_identity_type        = "SystemAssigned"
-aks_linux_admin_username = "azureuser"
-aks_ssh_public_key       = "<obter-chave-publica-com-az-aks-show>"
-node_pool_name           = "nodepool1"
-node_count               = 2
-node_vm_size             = "Standard_D2s_v4"
+# Replace every example value after inspecting your own Azure resources.
+subscription_id               = ""
+resource_group_name           = "example-resource-group"
+location                      = "eastus"
+acr_name                      = "exampleacr12345"
+acr_sku                       = "Basic"
+acr_admin_enabled             = false
+acr_pull_role_assignment_guid = "00000000-0000-0000-0000-000000000000"
+aks_name                      = "example-aks"
+aks_dns_prefix                = "example-aks"
+aks_kubernetes_version        = ""
+aks_sku_tier                  = "Free"
+aks_identity_type             = "SystemAssigned"
+aks_linux_admin_username      = "azureuser"
+aks_ssh_public_key            = "<your-public-ssh-key>"
+node_pool_name                = "nodepool1"
+node_count                    = 2
+node_vm_size                  = "Standard_D2s_v4"

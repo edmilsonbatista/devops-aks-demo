@@ -1,6 +1,6 @@
 # Makefile para facilitar comandos comuns
 
-.PHONY: help install dev build run-docker stop-docker clean deploy logs status
+.PHONY: help install dev build run-docker stop-docker clean deploy logs status docker-compose-up docker-compose-down delete-k8s test-local test-k8s
 
 # Variáveis
 IMAGE_NAME := devops-aks-demo
@@ -11,7 +11,7 @@ help: ## Mostra esta mensagem de ajuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 install: ## Instala dependências da aplicação
-	cd app && npm install
+	cd app && npm ci
 
 dev: ## Executa aplicação em modo desenvolvimento
 	cd app && npm run dev
@@ -28,21 +28,23 @@ stop-docker: ## Para e remove container Docker
 	docker rm $(CONTAINER_NAME) || true
 
 docker-compose-up: ## Sobe aplicação com docker-compose
-	docker-compose up -d
+	docker compose up -d
 	@echo "Aplicação rodando em http://localhost:3000"
 
 docker-compose-down: ## Para docker-compose
-	docker-compose down
+	docker compose down
 
 clean: ## Remove node_modules e arquivos temporários
 	rm -rf app/node_modules
-	rm -rf app/package-lock.json
 	docker rmi $(IMAGE_NAME):local || true
 
 # Comandos Kubernetes (requer kubectl configurado)
 deploy: ## Deploy no Kubernetes (substitua valores antes)
-	@echo "Certifique-se de configurar ACR_LOGIN_SERVER e IMAGE_TAG"
-	kubectl apply -f k8s/
+	@test -n "$(ACR_LOGIN_SERVER)" || (echo "Defina ACR_LOGIN_SERVER" && exit 1)
+	@test -n "$(IMAGE_TAG)" || (echo "Defina IMAGE_TAG" && exit 1)
+	@test -n "$(GIT_SHA)" || (echo "Defina GIT_SHA" && exit 1)
+	ACR_LOGIN_SERVER="$(ACR_LOGIN_SERVER)" IMAGE_TAG="$(IMAGE_TAG)" GIT_SHA="$(GIT_SHA)" envsubst < k8s/deployment.yaml | kubectl apply -f -
+	kubectl apply -f k8s/service.yaml
 
 logs: ## Ver logs dos pods no Kubernetes
 	kubectl logs -l app=devops-aks-demo --tail=50 -f

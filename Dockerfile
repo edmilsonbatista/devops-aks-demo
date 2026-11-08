@@ -1,19 +1,17 @@
 # Multi-stage build for optimized image size
 
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY app/package*.json ./
 
-# Install production dependencies. This project does not include a package-lock.json,
-# so use npm install instead of npm ci, which requires a lockfile.
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 # Stage 2: Production
-FROM node:18-alpine
+FROM node:24-alpine
 
 # Add non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

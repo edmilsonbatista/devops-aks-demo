@@ -163,7 +163,7 @@
           statusText.textContent = 'Aplicação online';
           healthValue.textContent = health.status === 'healthy' ? 'Saudável' : health.status;
           healthDetail.textContent = `Verificado às ${new Date(health.timestamp).toLocaleTimeString('pt-BR')}`;
-          hostValue.textContent = info.hostname;
+          hostValue.textContent = 'Container';
           runtimeDetail.textContent = `${info.platform} · ${info.nodeVersion}`;
           versionValue.textContent = api.version;
           versionDetail.textContent = api.commit ? `Commit ${api.commit.slice(0, 7)} · imagem ${api.imageTag}` : 'Build local';

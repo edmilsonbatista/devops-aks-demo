@@ -10,7 +10,7 @@ Usar Argo CD para sincronizar a aplicação no AKS a partir dos manifests versio
 
 Argo CD é uma aplicação open source que roda dentro de um cluster Kubernetes. A instalação cria vários componentes, executados em pods — normalmente no namespace `argocd` — que leem o repositório Git e sincronizam os recursos declarados com o cluster. A arquitetura e seus componentes estão descritos na [documentação oficial](https://argo-cd.readthedocs.io/en/stable/operator-manual/architecture/).
 
-Para esta demo, a proposta é instalar o Argo CD no AKS já existente (`aksdevopsdemo`), sem criar outro cluster. Os pods do Argo CD usarão CPU e memória dos nodes atuais; se a capacidade ficar insuficiente, pode ser necessário aumentar os recursos do cluster, o que pode gerar custos adicionais. O [guia oficial de instalação e primeiros passos](https://argo-cd.readthedocs.io/en/stable/getting_started/) cobre a instalação, o acesso à interface e a criação de uma aplicação a partir do Git.
+Para esta demo, a proposta é instalar o Argo CD no AKS já existente, sem criar outro cluster. Os pods do Argo CD usarão CPU e memória dos nodes atuais; se a capacidade ficar insuficiente, pode ser necessário aumentar os recursos do cluster, o que pode gerar custos adicionais. O [guia oficial de instalação e primeiros passos](https://argo-cd.readthedocs.io/en/stable/getting_started/) cobre a instalação, o acesso à interface e a criação de uma aplicação a partir do Git.
 
 ## Fluxo proposto
 
@@ -47,7 +47,7 @@ Depois, acesse `https://localhost:8080`. Isso evita criar um novo Service `LoadB
 ## Custos para esta demo
 
 - **Licença do Argo CD:** sem cobrança de licença; o projeto usa licença Apache 2.0 ([repositório oficial](https://github.com/argoproj/argo-cd)).
-- **Recursos do cluster:** Argo CD executa componentes dentro do AKS e consome CPU e memória dos nodes existentes. O cluster desta demo tem dois nodes `Standard_D2s_v4`, sem autoscaling configurado. Se a capacidade existente ficar insuficiente e for necessário aumentar ou adicionar nodes, haverá custo adicional.
+- **Recursos do cluster:** Argo CD executa componentes dentro do AKS e consome CPU e memória dos nodes existentes. Se a capacidade ficar insuficiente e for necessário aumentar ou adicionar nodes, haverá custo adicional.
 - **Tier do AKS:** o cluster está no tier `Free`; esse tier não cobra a gestão do control plane, mas os recursos Azure subjacentes continuam cobrados ([preços do AKS](https://azure.microsoft.com/en-us/pricing/details/kubernetes-service/)).
 - **Exposição externa:** usar um novo `LoadBalancer`, IP público ou gateway para a interface pode adicionar custos de rede. A cobrança do Standard Load Balancer depende de regras configuradas e tráfego processado ([preços do Load Balancer](https://azure.microsoft.com/en-us/pricing/details/load-balancer/)). Para a demo, port-forward evita essa exposição.
 

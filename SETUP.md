@@ -11,6 +11,6 @@ Este arquivo orienta a sequência de configuração. Os detalhes técnicos ficam
 
 - Para executar somente a aplicação, siga [QUICKSTART.md](QUICKSTART.md).
 - Para administrar a infraestrutura existente, autentique no Azure CLI e revise `terraform plan` antes de qualquer `terraform apply`.
-- Para publicar uma alteração da aplicação, faça push para `main` e acompanhe a execução em **GitHub → Actions**.
+- Para publicar uma alteração, abra um pull request para `main`, aguarde o check de validação e acompanhe o deploy após o merge em **GitHub → Actions**.
 
 Não coloque credenciais, senhas ou arquivos de estado do Terraform no repositório.

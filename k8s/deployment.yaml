@@ -20,6 +20,7 @@ spec:
         app: devops-aks-demo
         version: "1.0.0"
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: devops-aks-demo
         image: ${ACR_LOGIN_SERVER}/devops-aks-demo:${IMAGE_TAG}
@@ -62,8 +63,12 @@ spec:
           failureThreshold: 3
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
+          runAsGroup: 1001
           runAsUser: 1001
+          seccompProfile:
+            type: RuntimeDefault
           capabilities:
             drop:
             - ALL

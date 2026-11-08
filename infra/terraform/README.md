@@ -1,79 +1,68 @@
-# Terraform — infraestrutura Azure
+# Terraform: infraestrutura Azure
 
-Esta configuração importa os recursos existentes desta demonstração: Resource Group, Azure Container Registry (ACR), Azure Kubernetes Service (AKS) e a atribuição `AcrPull` do kubelet ao ACR. Ela ficará separada dos manifests da aplicação em `k8s/` e do workflow de CI/CD.
+Esta configuração importa recursos Azure já existentes para o estado do Terraform: Resource Group, Azure Container Registry (ACR), Azure Kubernetes Service (AKS) e a atribuição `AcrPull` da identidade kubelet. Os valores de exemplo são fictícios; substitua-os pelos valores do seu ambiente em um arquivo local `terraform.tfvars`, que não deve ser versionado.
 
 ## Pré-requisitos
 
-- Terraform CLI instalado.
-- Azure CLI instalado e autenticado na assinatura correta (`az login`).
-- Permissão de leitura e gerenciamento dos recursos Azure e atribuições RBAC.
-- Nomes e propriedades atuais do Resource Group, ACR e AKS.
+- Terraform CLI compatível com `versions.tf`.
+- Azure CLI autenticado na assinatura correta (`az login`).
+- Permissões para consultar os recursos e atribuições RBAC.
+- Dados atuais dos recursos existentes, consultados no Azure.
 
-O provider AzureRM 4 requer o ID da assinatura nos comandos `plan` e `apply`. Obtenha-o com `az account show --query id -o tsv` e preencha `subscription_id` no arquivo local `terraform.tfvars`.
-
-## Importar recursos existentes
-
-Criar arquivos `.tf` não faz o Terraform assumir recursos já existentes. A configuração contém blocos de importação para associar os recursos atuais ao estado do Terraform.
-
-O cluster identificado é `aksdevopsdemo`, e o registry com a permissão `AcrPull` é `acrdevopsdemo27844`. Para obter o GUID dessa atribuição e preencher `acr_pull_role_assignment_guid` em `terraform.tfvars`, execute no Azure Cloud Shell:
+O provider AzureRM requer o ID da assinatura nos comandos Terraform. Obtenha-o com:
 
 ```bash
-KUBELET_ID=$(az aks show -g rg-devops-aks-demo -n aksdevopsdemo \
+az account show --query id -o tsv
+```
+
+Copie `terraform.tfvars.example` para `terraform.tfvars` e preencha os nomes e propriedades reais dos recursos. Não cole credenciais, chaves privadas ou o estado Terraform no repositório.
+
+## Consultar o GUID da atribuição AcrPull
+
+Preencha os nomes abaixo localmente antes de executar os comandos:
+
+```bash
+RESOURCE_GROUP="<resource-group>"
+AKS_NAME="<aks-name>"
+ACR_NAME="<acr-name>"
+
+KUBELET_ID=$(az aks show -g "$RESOURCE_GROUP" -n "$AKS_NAME" \
   --query identityProfile.kubeletidentity.objectId -o tsv)
-ACR_ID=$(az acr show -g rg-devops-aks-demo -n acrdevopsdemo27844 --query id -o tsv)
+ACR_ID=$(az acr show -g "$RESOURCE_GROUP" -n "$ACR_NAME" --query id -o tsv)
 
 az role assignment list --all --assignee-object-id "$KUBELET_ID" \
-  --query "[?scope=='$ACR_ID' && roleDefinitionName=='AcrPull'].name" \
-  -o tsv
+  --query "[?scope=='$ACR_ID' && roleDefinitionName=='AcrPull'].name" -o tsv
 ```
 
-O secret `ACR_LOGIN_SERVER` do GitHub Actions também deve apontar para `acrdevopsdemo27844.azurecr.io`; não copie nem envie os secrets de autenticação.
+Use o GUID retornado em `acr_pull_role_assignment_guid`. O ACR deve permitir que o AKS faça pull da imagem. O exemplo mantém a conta administrativa desabilitada. O workflow atual ainda publica usando usuário e senha do ACR; antes de aplicar esse valor em um ACR existente, migre a publicação para uma identidade com RBAC `AcrPush` ou ajuste o valor local para refletir o estado atual e revise o plano.
 
-O AKS tem um perfil Linux com chave SSH pública. Preencha `aks_ssh_public_key` no `terraform.tfvars` usando a saída deste comando; não é necessário enviar a chave no chat:
+## Planejar a importação
 
-```bash
-az aks show -g rg-devops-aks-demo -n aksdevopsdemo \
-  --query linuxProfile.ssh.publicKeys[0].keyData -o tsv
-```
-
-O registry `acrdevopsdemo10975` também existe no Resource Group, mas não apareceu associado ao kubelet deste AKS e não está incluído nesta configuração. Confirme que o workflow não o utiliza antes de considerar qualquer limpeza.
-
-1. Copie `terraform.tfvars.example` para `terraform.tfvars`, preencha `subscription_id` e confira os demais valores com o Azure. O arquivo local está excluído do Git.
-2. Inicialize o diretório:
+1. Inicialize o diretório:
 
    ```bash
    terraform init
    ```
 
-3. Formate e valide a configuração:
+2. Formate e valide a configuração:
 
    ```bash
    terraform fmt -recursive
    terraform validate
    ```
 
-4. Revise o plano de importação:
+3. Revise o plano antes de qualquer alteração:
 
    ```bash
    terraform plan
    ```
 
-5. Confirme que o plano importa os recursos corretos e não propõe recriação, substituição ou exclusão. Só então aplique o plano para registrar a importação:
+4. Aplique somente se o plano importar os recursos esperados e não propuser recriações, substituições ou exclusões inesperadas. Depois, rode `terraform plan` novamente e resolva qualquer diferença antes de administrar mudanças.
 
-   ```bash
-   terraform apply
-   ```
+Não execute `apply` para tentar corrigir um plano inesperado. Os valores no `terraform.tfvars` precisam refletir o estado real do Azure.
 
-6. Rode `terraform plan` novamente e resolva qualquer diferença entre a configuração e os recursos reais antes de usar Terraform para administrar mudanças.
+## Estado e autenticação
 
-Não execute `apply` se o plano mostrar alterações inesperadas. Importar um recurso não garante que a configuração HCL já reflita todos os valores atuais.
+`terraform.tfstate`, arquivos de plano, `.terraform/` e `terraform.tfvars` são locais e podem conter dados sensíveis. O `.gitignore` e o `.dockerignore` excluem esses arquivos. Para trabalho compartilhado, configure backend remoto com controle de acesso e bloqueio de estado.
 
-## Estado e credenciais
-
-O estado do Terraform pode conter dados sensíveis. Não versione `terraform.tfstate`, arquivos de plano, `.terraform/` ou `terraform.tfvars`. Este repositório os ignora no `.gitignore`. Para uso por várias pessoas ou por automação, configure um backend remoto com controle de acesso e bloqueio de estado antes de compartilhar o estado local.
-
-Autentique pelo Azure CLI. Não inclua senhas do ACR, credenciais de service principal ou segredos do GitHub em arquivos Terraform.
-
-## Relação com o pipeline
-
-O Terraform gerencia a infraestrutura Azure. O workflow em `.github/workflows/` continua responsável por build/push da imagem e pelo deploy no AKS. A aplicação usa `ACR_LOGIN_SERVER`, `AKS_RESOURCE_GROUP` e `AKS_CLUSTER_NAME` nos secrets já configurados no GitHub.
+O workflow GitHub Actions atualmente autentica usando secrets do repositório. Mantenha as credenciais somente nas configurações de Actions; para produção, prefira migrar para OpenID Connect (OIDC) com permissões RBAC mínimas.

@@ -4,8 +4,10 @@ Aplicação de demonstração em Node.js e Express. O conteúdo da página inici
 
 ## Executar localmente
 
+Requer Node.js 24 LTS ou superior.
+
 ```bash
-npm install
+npm ci
 npm start
 ```
 
@@ -17,7 +19,7 @@ Acesse `http://localhost:3000`.
 | --- | --- |
 | `/` | Painel visual da demonstração |
 | `/health` | Estado de saúde, horário da verificação e uptime |
-| `/info` | Hostname, sistema operacional e versão do Node.js |
+| `/info` | Plataforma e versão do Node.js, sem expor o hostname do pod |
 | `/api` | Versão, commit, tag da imagem e ambiente |
 
 O painel consulta `/health`, `/info` e `/api` ao abrir e depois a cada 30 segundos. Se `GIT_SHA` e `IMAGE_TAG` não estiverem definidos, a API informa execução local.

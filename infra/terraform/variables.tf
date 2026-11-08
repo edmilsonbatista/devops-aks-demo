@@ -6,7 +6,6 @@ variable "subscription_id" {
 variable "resource_group_name" {
   description = "Resource Group existente que contém o ACR e o AKS desta demo."
   type        = string
-  default     = "rg-devops-aks-demo"
 }
 
 variable "location" {
@@ -47,13 +46,11 @@ variable "acr_pull_role_assignment_guid" {
 variable "aks_name" {
   description = "Nome do cluster AKS existente."
   type        = string
-  default     = "aksdevopsdemo"
 }
 
 variable "aks_dns_prefix" {
   description = "DNS prefix atual do AKS."
   type        = string
-  default     = "aksdevopsd-rg-devops-aks-de-a4091a"
 }
 
 variable "aks_kubernetes_version" {
