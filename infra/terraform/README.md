@@ -1,25 +1,26 @@
 # Terraform: infraestrutura Azure
 
-Esta configuração importa recursos Azure já existentes para o estado do Terraform: Resource Group, Azure Container Registry (ACR), Azure Kubernetes Service (AKS) e a atribuição `AcrPull` da identidade kubelet. Os valores de exemplo são fictícios; substitua-os pelos valores do seu ambiente em um arquivo local `terraform.tfvars`, que não deve ser versionado.
+Esta configuração importa para o estado Terraform recursos Azure já existentes: Resource Group, ACR, AKS e a atribuição `AcrPull` da identidade kubelet. Ela não cria nem atualiza esses recursos automaticamente ao ser inicializada; revise o plano antes de aplicar qualquer mudança.
 
 ## Pré-requisitos
 
-- Terraform CLI compatível com `versions.tf`.
-- Azure CLI autenticado na assinatura correta (`az login`).
-- Permissões para consultar os recursos e atribuições RBAC.
-- Dados atuais dos recursos existentes, consultados no Azure.
+- Terraform CLI 1.5 ou superior.
+- Azure CLI autenticado (`az login`) com acesso à assinatura e aos recursos.
+- Permissões para consultar recursos e atribuições RBAC.
+- Valores atuais dos recursos existentes.
 
-O provider AzureRM requer o ID da assinatura nos comandos Terraform. Obtenha-o com:
+Confira e selecione a assinatura correta:
 
 ```bash
 az account show --query id -o tsv
+az account set --subscription "<subscription-id>"
 ```
 
-Copie `terraform.tfvars.example` para `terraform.tfvars` e preencha os nomes e propriedades reais dos recursos. Não cole credenciais, chaves privadas ou o estado Terraform no repositório.
+Copie `terraform.tfvars.example` para `terraform.tfvars` e substitua **todos** os exemplos pelos dados reais. O exemplo não representa uma configuração pronta para aplicar. Não inclua tokens, senhas ou chaves privadas.
 
-## Consultar o GUID da atribuição AcrPull
+## Obter o GUID da atribuição AcrPull
 
-Preencha os nomes abaixo localmente antes de executar os comandos:
+Preencha os nomes reais localmente. Estes comandos Bash consultam a identidade kubelet e o escopo do ACR:
 
 ```bash
 RESOURCE_GROUP="<resource-group>"
@@ -34,35 +35,32 @@ az role assignment list --all --assignee-object-id "$KUBELET_ID" \
   --query "[?scope=='$ACR_ID' && roleDefinitionName=='AcrPull'].name" -o tsv
 ```
 
-Use o GUID retornado em `acr_pull_role_assignment_guid`. O ACR deve permitir que o AKS faça pull da imagem. O exemplo mantém a conta administrativa desabilitada. O workflow atual ainda publica usando usuário e senha do ACR; antes de aplicar esse valor em um ACR existente, migre a publicação para uma identidade com RBAC `AcrPush` ou ajuste o valor local para refletir o estado atual e revise o plano.
+Use o GUID retornado em `acr_pull_role_assignment_guid`. Confirme também que os valores do `terraform.tfvars` correspondem ao estado real no Azure.
 
-## Planejar a importação
+## Importar e revisar
 
-1. Inicialize o diretório:
+Execute na pasta `infra/terraform/`:
 
-   ```bash
-   terraform init
-   ```
+```bash
+terraform init
+terraform fmt -check -recursive
+terraform validate
+terraform plan
+```
 
-2. Formate e valide a configuração:
+Os blocos `import` em `main.tf` associam os recursos existentes ao estado Terraform. Confira cada ação do plano. Só aplique se os recursos importados forem os esperados e o plano não contiver alterações destrutivas ou inesperadas:
 
-   ```bash
-   terraform fmt -recursive
-   terraform validate
-   ```
+```bash
+terraform apply
+terraform plan
+```
 
-3. Revise o plano antes de qualquer alteração:
+Se o plano propor recriar, substituir ou excluir recursos, interrompa e corrija a configuração ou as importações antes de aplicar. Não use `apply` para tentar resolver divergências sem entender o plano.
 
-   ```bash
-   terraform plan
-   ```
+## Credenciais do ACR no CI
 
-4. Aplique somente se o plano importar os recursos esperados e não propuser recriações, substituições ou exclusões inesperadas. Depois, rode `terraform plan` novamente e resolva qualquer diferença antes de administrar mudanças.
+O workflow atual publica imagens no ACR usando `ACR_USERNAME` e `ACR_PASSWORD` configurados como GitHub Actions Secrets. O exemplo Terraform define `acr_admin_enabled = false`; portanto, não aplique essa configuração ao ACR atual sem primeiro migrar o workflow para uma identidade com RBAC `AcrPush`, ou confirmar e representar corretamente o estado desejado. O Azure Login do workflow também usa credencial armazenada; OIDC com permissões mínimas é a evolução recomendada.
 
-Não execute `apply` para tentar corrigir um plano inesperado. Os valores no `terraform.tfvars` precisam refletir o estado real do Azure.
+## Estado e dados locais
 
-## Estado e autenticação
-
-`terraform.tfstate`, arquivos de plano, `.terraform/` e `terraform.tfvars` são locais e podem conter dados sensíveis. O `.gitignore` e o `.dockerignore` excluem esses arquivos. Para trabalho compartilhado, configure backend remoto com controle de acesso e bloqueio de estado.
-
-O workflow GitHub Actions atualmente autentica usando secrets do repositório. Mantenha as credenciais somente nas configurações de Actions; para produção, prefira migrar para OpenID Connect (OIDC) com permissões RBAC mínimas.
+`terraform.tfstate`, arquivos de plano, `.terraform/` e `terraform.tfvars` podem conter dados sensíveis. Eles são ignorados pelo Git e pelo contexto Docker; mantenha-os fora de commits e backups públicos. Para trabalho compartilhado, configure um backend remoto protegido com controle de acesso e bloqueio de estado.

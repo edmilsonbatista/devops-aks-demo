@@ -1,36 +1,36 @@
-# Aplicação
+# Aplicação Node.js
 
-Aplicação de demonstração em Node.js e Express. O conteúdo da página inicial está em `src/public/index.html`; as rotas de diagnóstico e metadados são implementadas em `src/index.js`.
+Aplicação de demonstração em Express, com um painel estático e endpoints para saúde e metadados. O HTML está em `src/public/index.html`; as rotas estão em `src/index.js`.
 
-## Executar localmente
+## Requisitos e execução local
 
-Requer Node.js 24 LTS ou superior.
+Requer Node.js 24 ou superior. Execute na pasta `app/`:
 
 ```bash
 npm ci
 npm start
 ```
 
-Acesse `http://localhost:3000`.
+Acesse `http://localhost:3000`. Para desenvolvimento com reinício automático ao alterar arquivos, use `npm run dev`.
 
 ## Endpoints
 
-| Rota | Resposta |
+| Rota | Conteúdo |
 | --- | --- |
-| `/` | Painel visual da demonstração |
-| `/health` | Estado de saúde, horário da verificação e uptime |
-| `/info` | Plataforma e versão do Node.js, sem expor o hostname do pod |
-| `/api` | Versão, commit, tag da imagem e ambiente |
+| `/` | Painel de demonstração |
+| `/health` | Estado de saúde, horário e uptime do processo |
+| `/info` | Plataforma do sistema e versão do Node.js |
+| `/api` | Versão do app, commit, tag da imagem e ambiente |
 
-O painel consulta `/health`, `/info` e `/api` ao abrir e depois a cada 30 segundos. Se `GIT_SHA` e `IMAGE_TAG` não estiverem definidos, a API informa execução local.
+O painel consulta os endpoints de saúde e metadados ao abrir e periodicamente. Em execução local, `/api` informa `commit: null` e `imageTag: "local"` quando as variáveis correspondentes não estão definidas.
 
-## Container local
+## Executar em container
 
-Execute os comandos a partir da raiz do repositório:
+Os comandos devem ser executados na raiz do repositório, pois o Dockerfile usa `app/` como diretório de origem:
 
 ```bash
 docker build -t devops-aks-demo:local .
 docker run --rm -p 3000:3000 devops-aks-demo:local
 ```
 
-O Dockerfile copia a pasta `app/src` inteira para a imagem, incluindo o painel em `src/public/`.
+O container usa Node.js 24 Alpine e executa a aplicação como usuário sem privilégios. O Compose local também pode ser iniciado pela raiz com `docker compose up --build`.

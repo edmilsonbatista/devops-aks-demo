@@ -1,29 +1,41 @@
 # Kubernetes
 
-Esta pasta contém os manifests que executam e expõem a aplicação no Azure Kubernetes Service (AKS).
+Esta pasta contém os manifests usados pelo workflow para implantar a aplicação no AKS.
 
-## Arquivos
+## Manifests
 
-- `deployment.yaml`: duas réplicas, atualização gradual, probes de saúde e limites de CPU/memória.
-- `service.yaml`: Service `LoadBalancer` que encaminha tráfego da porta 80 para a porta 3000 dos pods.
+- `deployment.yaml`: duas réplicas, atualização gradual, probes HTTP, limites de recursos e contexto de segurança do container.
+- `service.yaml`: Service `LoadBalancer`, porta 80 para porta 3000 dos pods.
 
-## Variáveis do deployment
+O `LoadBalancer` pode criar recursos Azure com custo. Verifique o estado e os custos associados na assinatura antes de deixar a aplicação publicada.
 
-O `deployment.yaml` usa substituição de ambiente antes de ser aplicado:
+## Variáveis da imagem
 
-- `ACR_LOGIN_SERVER`: endereço do Azure Container Registry.
-- `IMAGE_TAG`: tag da imagem Docker.
-- `GIT_SHA`: commit completo usado para gerar a imagem.
+Antes de aplicar `deployment.yaml`, o workflow substitui estas variáveis via `envsubst`:
 
-O workflow do GitHub Actions define essas variáveis e aplica os manifests. Para executar manualmente, configure as três variáveis e rode:
+- `ACR_LOGIN_SERVER`: endereço do ACR.
+- `IMAGE_TAG`: tag SHA curta da imagem publicada.
+- `GIT_SHA`: SHA completo do commit.
+
+## Aplicar manualmente
+
+Pré-requisitos: `kubectl`, `envsubst`, contexto Kubernetes configurado e cluster AKS em execução e acessível. Preencha as variáveis com valores do seu ambiente:
 
 ```bash
+export ACR_LOGIN_SERVER="<seu-acr>.azurecr.io"
+export IMAGE_TAG="<tag-da-imagem-publicada>"
+export GIT_SHA="<sha-do-commit>"
+
 envsubst < k8s/deployment.yaml | kubectl apply -f -
 kubectl apply -f k8s/service.yaml
-kubectl rollout status deployment/devops-aks-demo-deployment
+kubectl rollout status deployment/devops-aks-demo-deployment --timeout=5m
 ```
 
-## Verificação
+Execute os comandos a partir da raiz do repositório. A identidade usada por `kubectl` precisa ter permissão para atualizar os recursos; os nodes do AKS também precisam conseguir baixar a imagem do ACR.
+
+Se o AKS estiver parado, a API Kubernetes pode não resolver ou não estar acessível e o `kubectl apply` falhará. Inicie o cluster e aguarde o estado `Running` antes de tentar novamente. Não use `--validate=false` como correção para indisponibilidade da API: essa opção não torna possível aplicar recursos sem conexão com o cluster.
+
+## Verificar
 
 ```bash
 kubectl get deployments,pods,services -l app=devops-aks-demo
@@ -31,8 +43,8 @@ kubectl logs -l app=devops-aks-demo --tail=50
 kubectl get service devops-aks-demo-service
 ```
 
-O endereço público é provisionado pelo Azure para o Service `LoadBalancer`. A infraestrutura do cluster e do registry será documentada em [`infra/terraform/README.md`](../infra/terraform/README.md).
+O endereço externo é provisionado para o Service pelo Azure. Para detalhes da infraestrutura, consulte [`infra/README.md`](../infra/README.md) e o [guia Terraform](../infra/terraform/README.md).
 
-## Entrega futura com Argo CD
+## GitOps futuro
 
-O workflow atual aplica os manifests via GitHub Actions. A proposta futura é manter o build e o push da imagem no GitHub Actions e transferir a sincronização dos manifests para Argo CD. Consulte o [estudo de Argo CD e GitOps](../argocd/README.md); o Argo CD ainda não está instalado no cluster.
+Hoje, GitHub Actions aplica os manifests diretamente. Argo CD é somente uma proposta futura e ainda não está instalado ou configurado. Consulte o [guia de Argo CD](../argocd/README.md).

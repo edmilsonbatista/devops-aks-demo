@@ -1,54 +1,43 @@
-# Estudo futuro: Argo CD e GitOps
+# Proposta futura: Argo CD e GitOps
 
-> **Status:** proposta futura. Argo CD não está instalado nem configurado neste cluster.
+> **Status:** documentação de uma possível evolução. Argo CD não está instalado ou configurado; o workflow atual publica a imagem e aplica `k8s/` via `kubectl`.
 
 ## Objetivo
 
-Usar Argo CD para sincronizar a aplicação no AKS a partir dos manifests versionados no Git. O Terraform continua responsável pela infraestrutura Azure; GitHub Actions continua responsável pelo build e publicação da imagem no ACR.
+Usar Git como fonte declarativa do estado da aplicação no AKS. GitHub Actions continuaria construindo e publicando a imagem no ACR; Argo CD sincronizaria os manifests versionados no repositório. O Argo CD não constrói nem publica imagens.
 
-## Onde o Argo CD é executado
+Argo CD é executado dentro de um cluster Kubernetes e monitora um repositório Git para reconciliar recursos. Consulte a [arquitetura oficial](https://argo-cd.readthedocs.io/en/stable/operator-manual/architecture/) e o [guia de primeiros passos](https://argo-cd.readthedocs.io/en/stable/getting_started/).
 
-Argo CD é uma aplicação open source que roda dentro de um cluster Kubernetes. A instalação cria vários componentes, executados em pods — normalmente no namespace `argocd` — que leem o repositório Git e sincronizam os recursos declarados com o cluster. A arquitetura e seus componentes estão descritos na [documentação oficial](https://argo-cd.readthedocs.io/en/stable/operator-manual/architecture/).
-
-Para esta demo, a proposta é instalar o Argo CD no AKS já existente, sem criar outro cluster. Os pods do Argo CD usarão CPU e memória dos nodes atuais; se a capacidade ficar insuficiente, pode ser necessário aumentar os recursos do cluster, o que pode gerar custos adicionais. O [guia oficial de instalação e primeiros passos](https://argo-cd.readthedocs.io/en/stable/getting_started/) cobre a instalação, o acesso à interface e a criação de uma aplicação a partir do Git.
-
-## Fluxo proposto
+## Fluxo desejado
 
 ```text
-Push do código
-  → GitHub Actions cria e publica imagem com tag SHA no ACR
-  → CI atualiza a tag de imagem no repositório Git
-  → Argo CD detecta a alteração e sincroniza k8s/ no AKS
-  → AKS executa a nova versão
+Pull request → validação
+Merge em main → GitHub Actions constrói e publica imagem com tag SHA
+Atualização versionada da tag no Git → Argo CD sincroniza os manifests no AKS
 ```
 
-Argo CD acompanha o estado declarado no Git e pode sincronizar automaticamente as mudanças detectadas no cluster. O fluxo do Argo CD não constrói nem publica imagens; essa parte permanece no CI. Veja a [automação do Argo CD a partir de pipelines CI](https://argo-cd.readthedocs.io/en/latest/user-guide/ci_automation/) e a [sincronização automática](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/).
+O workflow atual ainda não atualiza a tag no Git nem entrega a sincronização ao Argo CD. A automação descrita acima é uma proposta, não uma capacidade já implementada.
 
-## Ajustes necessários antes da adoção
+## Trabalho necessário antes da adoção
 
-1. Migrar a imagem do deployment para Kustomize ou Helm. Hoje `k8s/deployment.yaml` usa `${ACR_LOGIN_SERVER}` e `${IMAGE_TAG}`, preenchidos pelo `envsubst` do workflow; Argo CD não executará essa etapa do shell.
-2. Fazer o CI atualizar a tag SHA no repositório Git depois de publicar a imagem. Argo CD então aplica a versão declarada no Git.
-3. Instalar Argo CD no AKS e declarar uma `Application` que acompanhe o caminho `k8s/`.
-4. Validar a sincronização e o estado saudável da aplicação.
-5. Depois da validação, remover do workflow GitHub Actions o job `deploy-to-aks`, que atualmente usa `kubectl apply`. Argo CD deve ser o único responsável por sincronizar `Deployment` e `Service` para evitar dois controladores disputando os mesmos recursos.
+1. Escolher Kustomize ou Helm para parametrizar a imagem. Hoje `k8s/deployment.yaml` usa `${ACR_LOGIN_SERVER}` e `${IMAGE_TAG}` via `envsubst`, que o Argo CD não executa.
+2. Definir como o CI registrará a nova tag no Git após publicar a imagem, com permissões mínimas e revisão adequada.
+3. Instalar Argo CD no AKS e configurar uma `Application` para acompanhar o caminho dos manifests.
+4. Validar sincronização, saúde da aplicação e política de rollback.
+5. Só depois da validação, remover do workflow o job que aplica Deployment e Service via `kubectl`, evitando dois controladores para os mesmos recursos.
 
-Para o primeiro uso, recomenda-se validar a sincronização manualmente e deixar `prune` desativado até confirmar o comportamento. Argo CD desativa o prune automático por padrão; habilitá-lo depois pode remover recursos que deixarem de existir nos manifests.
+Comece sem prune automático até validar o comportamento. Consulte a documentação sobre [automação a partir de CI](https://argo-cd.readthedocs.io/en/latest/user-guide/ci_automation/) e [sincronização automática](https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/).
 
 ## Acesso à interface
 
-Por padrão, a interface do Argo CD não é exposta fora do cluster. Para uma demo, use port-forward local:
+Para uma instalação futura, mantenha a interface privada e use port-forward durante o desenvolvimento:
 
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 
-Depois, acesse `https://localhost:8080`. Isso evita criar um novo Service `LoadBalancer` apenas para a interface. A [documentação de acesso do Argo CD](https://argo-cd.readthedocs.io/en/stable/try_argo_cd_locally/) descreve esse método.
+Então acesse `https://localhost:8080`. Consulte a documentação oficial para [acesso local](https://argo-cd.readthedocs.io/en/stable/try_argo_cd_locally/).
 
-## Custos para esta demo
+## Recursos e custos
 
-- **Licença do Argo CD:** sem cobrança de licença; o projeto usa licença Apache 2.0 ([repositório oficial](https://github.com/argoproj/argo-cd)).
-- **Recursos do cluster:** Argo CD executa componentes dentro do AKS e consome CPU e memória dos nodes existentes. Se a capacidade ficar insuficiente e for necessário aumentar ou adicionar nodes, haverá custo adicional.
-- **Tier do AKS:** o cluster está no tier `Free`; esse tier não cobra a gestão do control plane, mas os recursos Azure subjacentes continuam cobrados ([preços do AKS](https://azure.microsoft.com/en-us/pricing/details/kubernetes-service/)).
-- **Exposição externa:** usar um novo `LoadBalancer`, IP público ou gateway para a interface pode adicionar custos de rede. A cobrança do Standard Load Balancer depende de regras configuradas e tráfego processado ([preços do Load Balancer](https://azure.microsoft.com/en-us/pricing/details/load-balancer/)). Para a demo, port-forward evita essa exposição.
-
-Não há um custo mensal fixo específico do Argo CD. O valor incremental depende do consumo real do cluster e de como a interface é exposta. Esta proposta não provisiona recursos nem muda o workflow atual.
+Esta proposta não instala Argo CD nem altera infraestrutura. Uma instalação consome recursos do cluster e pode exigir recursos Azure adicionais. Antes de adotá-la, confira os requisitos atuais do Argo CD, a capacidade do AKS e os custos dos recursos Azure que ficariam ativos, inclusive quando o cluster estiver parado.

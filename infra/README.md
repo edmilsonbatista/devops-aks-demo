@@ -1,5 +1,7 @@
 # Infraestrutura Azure
 
-Esta pasta concentra os recursos de nuvem usados pelo projeto. O Terraform em `terraform/` adota o Resource Group existente, o Azure Container Registry e o Azure Kubernetes Service. Os manifests de `../k8s/` descrevem a aplicação que roda no cluster.
+O diretório `terraform/` contém configuração para importar recursos Azure já existentes para o estado local do Terraform e então gerenciá-los como infraestrutura como código. A aplicação é implantada separadamente pelos manifests em [`../k8s/`](../k8s/README.md) e pelo workflow do GitHub Actions.
 
-Consulte o [guia do Terraform](terraform/README.md) antes de inicializar ou aplicar mudanças. O estado deve permanecer fora do Git e operações que alterem recursos precisam ser revisadas com `terraform plan`.
+Antes de usar Terraform, leia o [guia de infraestrutura](terraform/README.md). O exemplo de variáveis contém valores fictícios; preencha um `terraform.tfvars` local com os valores do seu ambiente. Não versione esse arquivo, o estado Terraform ou arquivos de plano.
+
+Sempre revise `terraform plan` antes de aplicar. Esta configuração importa recursos existentes; um plano que proponha recriação, substituição ou exclusão inesperada deve ser investigado antes de qualquer `apply`.
